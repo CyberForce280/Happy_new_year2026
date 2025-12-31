@@ -2,22 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Happy New Year 2026 </title>
-
-
-</head>
-
-<body>
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>Happy New Year 2026
-        </title>
-        <style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Happy New Year 2026</title>
+    <style>
             /* full-page black background + canvas */
             html,
             body {
@@ -97,48 +85,88 @@
 
             .replyText { white-space: pre-wrap; }
             .replyEmail { margin-top:6px; font-size:12px; opacity:0.7; }
+            /* Responsive adjustments */
+            #feedbackBox { transition: transform 320ms ease, opacity 320ms ease; }
+
+            @media (max-width: 900px) {
+                /* smaller text and spacing */
+                body { font-size: 14px; }
+                p { font-size: 13px; }
+                canvas { height: 100%; }
+            }
+
+            @media (max-width: 600px) {
+                /* feedback box becomes bottom sheet on small screens */
+                #feedbackBox {
+                    left: 50%;
+                    top: auto !important;
+                    bottom: 12px;
+                    transform: translateX(-50%);
+                    width: calc(100% - 24px);
+                    max-width: 520px;
+                    padding: 12px;
+                    border-radius: 12px;
+                    box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+                }
+                #feedbackBox.collapsed { transform: translate(-50%, 110%); opacity: 0; pointer-events: none; }
+                #feedbackToggle {
+                    position: fixed;
+                    right: 12px;
+                    bottom: 12px;
+                    z-index: 10001;
+                    background: #2ea44f;
+                    color: #fff;
+                    padding: 10px 14px;
+                    border-radius: 14px;
+                    font-weight:700;
+                    cursor: pointer;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+                }
+                #shareControls { left: 50%; transform: translateX(-50%); bottom: 76px; }
+            }
         </style>
     </head>
 
-    <body>
-        <canvas id="c" aria-label="New Year animation"></canvas>
+<body>
+    <canvas id="c" aria-label="New Year animation"></canvas>
 
-        <!-- Background music (place 'music.mp3' in same folder) -->
-        <!-- autoplay muted playsinline helps browsers allow initial muted playback -->
-        <audio id="bgMusic" src="music.mp3" loop autoplay muted playsinline></audio>
+    <!-- Background music (place 'music.mp3' in same folder) -->
+    <!-- autoplay muted playsinline helps browsers allow initial muted playback -->
+    <audio id="bgMusic" src="music.mp3" loop autoplay muted playsinline></audio>
 
-        <!-- Play + Share controls (appears if autoplay blocked) -->
-        <div id="shareControls">
-            <div id="playBtn" title="تشغيل الموسقى">تشغيل الموسقى</div>
-            <div id="shareBtn" title="نسخ رابط المشاركة">مشاركة</div>
-        </div>
+    <!-- Play + Share controls (appears if autoplay blocked) -->
+    <div id="shareControls">
+        <div id="playBtn" title="تشغيل الموسيقى">تشغيل الموسيقى</div>
+        <div id="shareBtn" title="نسخ رابط المشاركة">مشاركة</div>
+    </div>
 
-        <p>
-            <a href="#" target="_blank">Happy New Year 2026
+    <p>
+        <a href="#" target="_blank">Happy New Year 2026</a>
+        <span>•By : Mohammrd Ali Hudis </span>
+    </p>
 
-            </a>
-            <span>•By : Mohammrd Ali Hudis </span>
-        </p>
+    <!-- Feedback box (left side / bottom on mobile) -->
+    <aside id="feedbackBox"
+        style="position:fixed;left:12px;top:calc(50% + 10px);transform:translateY(-50%);width:260px;background:rgba(0,0,0,0.55);padding:14px;border-radius:10px;color:#fff;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,0.6);direction:rtl;">
+        <div style="font-weight:700;margin-bottom:8px;font-size:15px;"> يسعدني سماع رأك الصادق عني </div>
+        <form id="feedbackForm" style="display:block;">
+            <input id="feedbackEmail" type="email" placeholder="ايميلك هنا (اختياري)" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;margin-bottom:8px;" />
+            <textarea id="feedbackText" placeholder=" اكتب رئيك هنا" rows="4"
+                style="width:100%;resize:none;border-radius:6px;padding:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;box-sizing:border-box;"></textarea>
+            <div style="display:flex;justify-content:flex-start;margin-top:8px;">
+                <button id="feedbackSubmit" type="button"
+                    style="padding:8px 12px;border-radius:8px;border:none;background:#2ea44f;color:#fff;font-weight:700;cursor:pointer;">إرسال</button>
+            </div>
+        </form>
+        <div id="feedbackMessage" style="display:none;margin-top:8px;font-size:14px;">نقدر وقتك وملاحظاتك عنا,شكرا لدعمك المستمر</div>
+        <div style="font-weight:700;margin-top:10px;margin-bottom:6px;font-size:14px;">الردود</div>
+        <div id="feedbackList"></div>
+    </aside>
 
-        <!-- Feedback box (left side) -->
-        <aside id="feedbackBox"
-            style="position:fixed;left:12px;top:calc(50% + 10px);transform:translateY(-50%);width:260px;background:rgba(0,0,0,0.55);padding:14px;border-radius:10px;color:#fff;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,0.6);direction:rtl;">
-            <div style="font-weight:700;margin-bottom:8px;font-size:15px;"> يسعدني سماع رأك الصادق عني </div>
-            <form id="feedbackForm" style="display:block;">
-                        <input id="feedbackEmail" type="email" placeholder="ايميلك هنا (اختياري)" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;margin-bottom:8px;" />
-                        <textarea id="feedbackText" placeholder=" اكتب رئيك هنا" rows="4"
-                            style="width:100%;resize:none;border-radius:6px;padding:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;box-sizing:border-box;"></textarea>
-                <div style="display:flex;justify-content:flex-start;margin-top:8px;">
-                    <button id="feedbackSubmit" type="button"
-                        style="padding:8px 12px;border-radius:8px;border:none;background:#2ea44f;color:#fff;font-weight:700;cursor:pointer;">إرسال</button>
-                </div>
-            </form>
-            <div id="feedbackMessage" style="display:none;margin-top:8px;font-size:14px;">        نقدر وقتك وملاحظاتك عنا,شكرا لدعمك المستمر</div>
-            <div style="font-weight:700;margin-top:10px;margin-bottom:6px;font-size:14px;">الردود</div>
-            <div id="feedbackList"></div>
-        </aside>
+    <!-- small toggle button for mobile to open/close feedback box (injected by JS) -->
+    <div id="feedbackToggle" style="display:none">رد</div>
 
-        <script>
+    <script>
             (function () {
                 const canvas = document.getElementById('c');
                 if (!canvas) throw new Error("Canvas element with id 'c' not found.");
@@ -291,6 +319,27 @@
                 const feedbackBoxEl = document.getElementById('feedbackBox');
                 const feedbackList = document.getElementById('feedbackList');
 
+                // Create simple toggle for mobile feedback box
+                const feedbackToggle = document.getElementById('feedbackToggle');
+                function updateFeedbackToggle() {
+                    if (!feedbackToggle || !feedbackBoxEl) return;
+                    if (window.matchMedia('(max-width:600px)').matches) {
+                        feedbackToggle.style.display = 'block';
+                        feedbackBoxEl.classList.add('collapsed');
+                    } else {
+                        feedbackToggle.style.display = 'none';
+                        feedbackBoxEl.classList.remove('collapsed');
+                    }
+                }
+                if (feedbackToggle) {
+                    feedbackToggle.addEventListener('click', function(){
+                        if (!feedbackBoxEl) return;
+                        feedbackBoxEl.classList.toggle('collapsed');
+                    });
+                }
+                window.addEventListener('resize', updateFeedbackToggle, { passive: true });
+                updateFeedbackToggle();
+
                 function escapeHtml(s) {
                     return String(s || '').replace(/[&<>\"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
                 }
@@ -364,41 +413,15 @@
                         const email = emailEl ? (emailEl.value || '').trim() : '';
 
                         // If a static FEEDBACK_ENDPOINT is set, use it (Formspree or similar)
-                        if (FEEDBACK_ENDPOINT) {
+                            // Disabled network posting: always save locally and show reply
                             try {
-                                // some services expect form-encoded data; send JSON string for custom endpoints
-                                const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
-                                // many services return 200/201 even without JSON
-                                if (r.ok) {
-                                    try { addReply(v, email); } catch (e) { }
-                                    form.style.display = 'none'; msg.style.display = 'block'; txt.value = '';
-                                    return;
-                                }
-                            } catch (e) { /* continue to try local endpoints */ }
-                        }
-
-                        // send to local backend first (relative), then fallback to localhost:3000
-                        try {
-                            const res = await fetch('/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
-                            const j = await res.json();
-                            if (j && j.ok) { try { addReply(v, email); } catch (e) { } form.style.display = 'none'; msg.style.display = 'block'; txt.value = ''; return; }
-                        } catch (e) {
-                            try {
-                                const res2 = await fetch('http://localhost:3000/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
-                                const j2 = await res2.json();
-                                if (j2 && j2.ok) { try { addReply(v, email); } catch (e) { } form.style.display = 'none'; msg.style.display = 'block'; txt.value = ''; return; }
-                            } catch (e2) { /* fall through to final error */ }
-                        }
-                        // save locally so message stays visible even without server
-                        try {
-                            const localEntry = { message: v, email: email, ts: Date.now() };
-                            saveLocalFeedback(localEntry);
-                            try { addReply(v, email); } catch (e) { }
-                            form.style.display = 'none'; msg.style.display = 'block'; txt.value = '';
-                            alert('تعذر الوصول للخادم. تم حفظ الرسالة محليًا وستظهر في قسم الردود.');
-                        } catch (e) {
-                            alert('لم نستطع إرسال الرسالة أو حفظها محليًا. حاول مجددًا.');
-                        }
+                                const localEntry = { message: v, email: email, ts: Date.now(), localOnly: true };
+                                saveLocalFeedback(localEntry);
+                                try { addReply(v, email); } catch (e) { }
+                                form.style.display = 'none'; msg.style.display = 'block'; txt.value = '';
+                            } catch (e) {
+                                alert('لم نتمكن من حفظ الرسالة محليًا. حاول مجددًا.');
+                            }
                     });
                 })();
 
@@ -407,6 +430,15 @@
                 let calc = { totalWidth: 0 };
                 const Tau = Math.PI * 2;
                 const letters = [];
+
+                // Adjust some options for small screens to improve performance
+                if (window.matchMedia('(max-width:600px)').matches) {
+                    opts.snowCount = Math.max(40, Math.round(opts.snowCount * 0.25));
+                    opts.charSize = Math.max(20, Math.round(opts.charSize * 0.6));
+                    opts.charSpacing = Math.max(28, Math.round(opts.charSpacing * 0.6));
+                    opts.lineHeight = Math.max(32, Math.round(opts.lineHeight * 0.6));
+                    opts.snowWind = 0.4;
+                }
 
                 function setSize() {
                     DPR = Math.max(window.devicePixelRatio || 1, 1);
