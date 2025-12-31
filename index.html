@@ -142,7 +142,7 @@
 
     <p>
         <a href="#" target="_blank">Happy New Year 2026</a>
-        <span>•By : Mohammrd Ali Hudis </span>
+        <span>•By : Mohammed Ali Hudais </span>
     </p>
 
     <!-- Feedback box (left side / bottom on mobile) -->
@@ -171,6 +171,8 @@
                 const canvas = document.getElementById('c');
                 if (!canvas) throw new Error("Canvas element with id 'c' not found.");
                 const ctx = canvas.getContext('2d');
+
+                const DEFAULT_SIZES = { charSize: 50, charSpacing: 62, lineHeight: 72 };
 
                 const opts = {
                     strings: ["⚡️CYBER FORCE 280⚡️", "HAPPY NEW YEAR", " ✨ عام جديد سعيد ", "2026 ✨"],
@@ -218,6 +220,17 @@
                     snowCount: 500,
                     snowWind: 0.6
                 };
+
+                // If on a small screen, speed up animations so the "logo" (letters)
+                // appears sooner and feels responsive on mobile devices.
+                if (window.matchMedia('(max-width:600px)').matches) {
+                    opts.fireworkSpawnTime = Math.max(8, Math.round(opts.fireworkSpawnTime * 0.25));
+                    opts.fireworkBaseReachTime = Math.max(8, Math.round(opts.fireworkBaseReachTime * 0.35));
+                    opts.fireworkAddedReachTime = Math.max(6, Math.round(opts.fireworkAddedReachTime * 0.35));
+                    opts.letterContemplatingWaitTime = Math.max(40, Math.round(opts.letterContemplatingWaitTime * 0.12));
+                    opts.balloonSpawnTime = Math.max(6, Math.round(opts.balloonSpawnTime * 0.35));
+                    opts.balloonBaseInflateTime = Math.max(6, Math.round(opts.balloonBaseInflateTime * 0.45));
+                }
 
                 // helper: detect if a string contains Arabic characters
                 function isArabic(str) {
@@ -444,6 +457,14 @@
                     DPR = Math.max(window.devicePixelRatio || 1, 1);
                     const cssW = Math.max(1, innerWidth);
                     const cssH = Math.max(1, innerHeight);
+                    // compute a scale factor for text/layout: keep full size on wide screens,
+                    // scale down progressively on narrower viewports (min 0.45)
+                    const minScale = 0.45;
+                    const scale = Math.max(minScale, Math.min(1, cssW / 900));
+                    // update drawing sizes based on viewport scale so canvas text is responsive
+                    opts.charSize = Math.max(12, Math.round(DEFAULT_SIZES.charSize * scale));
+                    opts.charSpacing = Math.max(14, Math.round(DEFAULT_SIZES.charSpacing * scale));
+                    opts.lineHeight = Math.max(18, Math.round(DEFAULT_SIZES.lineHeight * scale));
                     canvas.style.width = cssW + 'px';
                     canvas.style.height = cssH + 'px';
                     canvas.width = Math.round(cssW * DPR);
