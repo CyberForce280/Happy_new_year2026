@@ -221,15 +221,23 @@
                     snowWind: 0.6
                 };
 
-                // If on a small screen, speed up animations so the "logo" (letters)
-                // appears sooner and feels responsive on mobile devices.
-                if (window.matchMedia('(max-width:600px)').matches) {
+                // detect mobile once and reuse
+                const isMobile = window.matchMedia('(max-width:600px)').matches;
+
+                // If on a small screen, speed up some timings so the logo appears sooner,
+                // but reduce vertical velocity so letters disappear more slowly.
+                if (isMobile) {
                     opts.fireworkSpawnTime = Math.max(8, Math.round(opts.fireworkSpawnTime * 0.25));
                     opts.fireworkBaseReachTime = Math.max(8, Math.round(opts.fireworkBaseReachTime * 0.35));
                     opts.fireworkAddedReachTime = Math.max(6, Math.round(opts.fireworkAddedReachTime * 0.35));
                     opts.letterContemplatingWaitTime = Math.max(40, Math.round(opts.letterContemplatingWaitTime * 0.12));
                     opts.balloonSpawnTime = Math.max(6, Math.round(opts.balloonSpawnTime * 0.35));
                     opts.balloonBaseInflateTime = Math.max(6, Math.round(opts.balloonBaseInflateTime * 0.45));
+                    // make balloons move slower upward so they stay visible longer
+                    opts.balloonBaseVel = Math.max(0.08, opts.balloonBaseVel * 0.45);
+                    opts.balloonAddedVel = Math.max(0.08, opts.balloonAddedVel * 0.45);
+                    // reduce upFlow magnitude to slow vertical motion
+                    opts.upFlow = opts.upFlow * 0.5;
                 }
 
                 // helper: detect if a string contains Arabic characters
@@ -620,8 +628,8 @@
                             this.vx = Math.cos(rad) * vel;
                             this.vy = Math.sin(rad) * vel;
                             this.cx = this.x; this.cy = this.y;
-                            // keep letter visible for at least 10 seconds after balloon phase begins
-                            this.keepAliveUntil = Date.now() + 10000;
+                            // keep letter visible longer on mobile (20s) and default 10s on desktop
+                            this.keepAliveUntil = Date.now() + ( (window.matchMedia('(max-width:600px)').matches) ? 20000 : 10000 );
                         }
                     } else if (this.phase === 'balloon') {
                         ctx.strokeStyle = this.lightColor(82);
