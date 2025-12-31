@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Happy New Year 2026 </title>
+
+
+</head>
+
+<body>
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Happy New Year 2026
+        </title>
+        <style>
+            /* full-page black background + canvas */
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                font-family: Verdana, Geneva, Tahoma, sans-serif;
+                background: #000000;
+                /* pure black */
+                overflow: hidden;
+            }
+
+            /* canvas fills viewport */
+            canvas {
+                position: fixed;
+                inset: 0;
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* small footer/credit */
+            p {
+                margin: 0;
+                position: absolute;
+                left: 12px;
+                bottom: 12px;
+                color: #ffdca8;
+                font-size: 14px;
+                text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+            }
+
+            p a {
+                color: #fff3d9;
+                text-decoration: none;
+                font-weight: 700;
+            }
+
+            p span {
+                font-size: 12px;
+                color: #ffdca8;
+                opacity: 0.9;
+                margin-left: 8px;
+            }
+            /* feedback replies list (inside the feedback box, scrollable) */
+            #feedbackList {
+                position: relative;
+                left: auto;
+                z-index: 2;
+                width: 100%;
+                pointer-events: auto;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                max-height: 340px;
+                overflow-y: auto;
+                padding-top: 8px;
+                box-sizing: border-box;
+            }
+
+                .replyItem {
+                pointer-events: auto;
+                background: rgba(255,255,255,0.04);
+                color: #fff;
+                padding: 8px 10px;
+                margin-top: 10px;
+                border-radius: 8px;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+                transform: translateY(0);
+                transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 320ms ease;
+                opacity: 1;
+                touch-action: pan-y;
+                user-select: none;
+                cursor: default;
+                font-size: 14px;
+                line-height: 1.3;
+            }
+
+            .replyText { white-space: pre-wrap; }
+            .replyEmail { margin-top:6px; font-size:12px; opacity:0.7; }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="c" aria-label="New Year animation"></canvas>
+
+        <!-- Background music (place 'music.mp3' in same folder) -->
+        <!-- autoplay muted playsinline helps browsers allow initial muted playback -->
+        <audio id="bgMusic" src="music.mp3" loop autoplay muted playsinline></audio>
+
+        <!-- Play + Share controls (appears if autoplay blocked) -->
+        <div id="shareControls">
+            <div id="playBtn" title="تشغيل الموسقى">تشغيل الموسقى</div>
+            <div id="shareBtn" title="نسخ رابط المشاركة">مشاركة</div>
+        </div>
+
+        <p>
+            <a href="#" target="_blank">Happy New Year 2026
+
+            </a>
+            <span>•By : Mohammrd Ali Hudis </span>
+        </p>
+
+        <!-- Feedback box (left side) -->
+        <aside id="feedbackBox"
+            style="position:fixed;left:12px;top:calc(50% + 10px);transform:translateY(-50%);width:260px;background:rgba(0,0,0,0.55);padding:14px;border-radius:10px;color:#fff;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,0.6);direction:rtl;">
+            <div style="font-weight:700;margin-bottom:8px;font-size:15px;"> يسعدني سماع رأك الصادق عني </div>
+            <form id="feedbackForm" style="display:block;">
+                        <input id="feedbackEmail" type="email" placeholder="ايميلك هنا (اختياري)" style="width:100%;box-sizing:border-box;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;margin-bottom:8px;" />
+                        <textarea id="feedbackText" placeholder=" اكتب رئيك هنا" rows="4"
+                            style="width:100%;resize:none;border-radius:6px;padding:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#fff;font-size:14px;box-sizing:border-box;"></textarea>
+                <div style="display:flex;justify-content:flex-start;margin-top:8px;">
+                    <button id="feedbackSubmit" type="button"
+                        style="padding:8px 12px;border-radius:8px;border:none;background:#2ea44f;color:#fff;font-weight:700;cursor:pointer;">إرسال</button>
+                </div>
+            </form>
+            <div id="feedbackMessage" style="display:none;margin-top:8px;font-size:14px;">        نقدر وقتك وملاحظاتك عنا,شكرا لدعمك المستمر</div>
+            <div style="font-weight:700;margin-top:10px;margin-bottom:6px;font-size:14px;">الردود</div>
+            <div id="feedbackList"></div>
+        </aside>
+
+        <script>
+            (function () {
+                const canvas = document.getElementById('c');
+                if (!canvas) throw new Error("Canvas element with id 'c' not found.");
+                const ctx = canvas.getContext('2d');
+
+                const opts = {
+                    strings: ["⚡️CYBER FORCE 280⚡️", "HAPPY NEW YEAR", " ✨ عام جديد سعيد ", "2026 ✨"],
+                    charSize: 50,
+                    charSpacing: 62,
+                    lineHeight: 72,
+                    arabicScale: 1.35,
+                    gravity: 0.12,
+                    upFlow: -0.06,
+                    fireworkPrevPoints: 12,
+                    fireworkBaseLineWidth: 6,
+                    fireworkAddedLineWidth: 8,
+                    fireworkSpawnTime: 140,
+                    fireworkBaseReachTime: 36,
+                    fireworkAddedReachTime: 40,
+                    fireworkCircleBaseSize: 22,
+                    fireworkCircleAddedSize: 14,
+                    fireworkCircleBaseTime: 36,
+                    fireworkCircleAddedTime: 26,
+                    fireworkCircleFadeBaseTime: 12,
+                    fireworkCircleFadeAddedTime: 8,
+                    fireworkBaseShards: 7,
+                    fireworkAddedShards: 8,
+                    fireworkShardPrevPoints: 3,
+                    fireworkShardBaseVel: 3.4,
+                    fireworkShardAddedVel: 2.6,
+                    fireworkShardBaseSize: 2,
+                    fireworkShardAddedSize: 3,
+                    // delay before a letter/line moves to the balloon phase
+                    // value is in animation frames (~60 frames = 1 second)
+                    letterContemplatingWaitTime: 400, // ~10 seconds
+                    balloonSpawnTime: 18,
+                    balloonBaseInflateTime: 12,
+                    balloonAddedInflateTime: 18,
+                    balloonBaseSize: 18,
+                    balloonAddedSize: 24,
+                    balloonBaseVel: 0.36,
+                    balloonAddedVel: 0.5,
+                    balloonBaseRadian: -(Math.PI / 2 - 0.4),
+                    balloonAddedRadian: -0.9
+                    ,
+                    // snow settings
+                    snowEnabled: true,
+                    // default is large; reduce if performance issues
+                    snowCount: 500,
+                    snowWind: 0.6
+                };
+
+                // helper: detect if a string contains Arabic characters
+                function isArabic(str) {
+                    return /[\u0600-\u06FF]/.test(str);
+                }
+
+                // background image (place your image file as 'bg.png' in the same folder)
+                const bgImg = new Image();
+                let bgReady = false;
+                bgImg.src = 'bg.png';
+                bgImg.onload = () => { bgReady = true; };
+
+                // snowflake sprite image (place 'snowflake.png' in same folder).
+                // If absent, code falls back to drawing simple circles.
+                const snowImg = new Image();
+                let snowImgReady = false;
+                snowImg.src = 'snowflake.png';
+                snowImg.onload = () => { snowImgReady = true; };
+
+                // music controls with visible play and share buttons
+                const bgMusic = document.getElementById('bgMusic');
+                const playBtn = document.getElementById('playBtn');
+                const shareBtn = document.getElementById('shareBtn');
+                const shareControls = document.getElementById('shareControls');
+                if (bgMusic) bgMusic.volume = 0.5;
+
+                if (shareControls) {
+                    const sc = shareControls.style;
+                    sc.position = 'fixed';
+                    sc.left = '50%';
+                    sc.bottom = '24px';
+                    sc.transform = 'translateX(-50%)';
+                    sc.display = 'flex';
+                    sc.gap = '12px';
+                    sc.zIndex = 9999;
+                    sc.alignItems = 'center';
+                }
+
+                function styleButton(el) {
+                    if (!el) return;
+                    const s = el.style;
+                    s.padding = '8px 14px';
+                    s.borderRadius = '24px';
+                    s.background = 'rgba(255,255,255,0.08)';
+                    s.color = '#fff';
+                    s.display = 'none';
+                    s.alignItems = 'center';
+                    s.justifyContent = 'center';
+                    s.cursor = 'pointer';
+                    s.fontSize = '15px';
+                    s.fontWeight = '700';
+                    s.backdropFilter = 'blur(6px)';
+                    s.boxShadow = '0 6px 20px rgba(0,0,0,0.6)';
+                }
+
+                styleButton(playBtn);
+                styleButton(shareBtn);
+                // make share button visible by default
+                if (shareBtn) shareBtn.style.display = 'flex';
+
+                function showPlayBtn() { if (playBtn) playBtn.style.display = 'flex'; }
+                function hidePlayBtn() { if (playBtn) playBtn.style.display = 'none'; }
+
+                function tryPlayMusic() {
+                    if (!bgMusic) return;
+                    const wantedVolume = 0.5;
+                    try { bgMusic.muted = true; bgMusic.volume = 0; } catch (e) { }
+                    bgMusic.play().then(() => {
+                        try { bgMusic.muted = false; bgMusic.volume = wantedVolume; } catch (e) { }
+                        hidePlayBtn();
+                    }).catch(() => {
+                        // autoplay blocked — show play button so user can enable audio
+                        showPlayBtn();
+                    });
+                }
+
+                if (playBtn) playBtn.addEventListener('click', () => {
+                    if (!bgMusic) return;
+                    try { bgMusic.muted = false; bgMusic.volume = 0.5; } catch (e) { }
+                    bgMusic.play().then(() => { hidePlayBtn(); }).catch(() => { /* ignore */ });
+                });
+
+                if (shareBtn) shareBtn.addEventListener('click', async () => {
+                    const prev = shareBtn.textContent;
+                    try {
+                        await navigator.clipboard.writeText(location.href);
+                        shareBtn.textContent = 'تم نسخ الرابط';
+                    } catch (err) {
+                        // fallback to prompt
+                        const ok = window.prompt('انسخ الرابط يدوياً:', location.href);
+                    }
+                    setTimeout(() => { if (shareBtn) shareBtn.textContent = prev; }, 2000);
+                });
+
+                // try to play once on load
+                tryPlayMusic();
+
+                // replies list: use the container inside the feedback box and helper for replies
+                const feedbackBoxEl = document.getElementById('feedbackBox');
+                const feedbackList = document.getElementById('feedbackList');
+
+                function escapeHtml(s) {
+                    return String(s || '').replace(/[&<>\"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+                }
+
+                // add a reply item — it will animate into the list and be persistent
+                function addReply(text, email) {
+                    if (!feedbackList) return;
+                    const el = document.createElement('div');
+                    el.className = 'replyItem';
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(-8px)';
+                    el.innerHTML = `<div class="replyText">${escapeHtml(text)}</div>` + (email ? `<div class="replyEmail">${escapeHtml(email)}</div>` : '');
+                    // allow native scrolling inside the feedback list (no pointer-capture handlers)
+
+                    // newest at top so users can pull down to see older messages below
+                    feedbackList.prepend(el);
+                    // animate in and keep view at top (newest)
+                    requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; if (feedbackList) feedbackList.scrollTop = 0; });
+                }
+
+                // load feedbacks from server (if available) and then localStorage fallback
+                async function loadServerFeedbacks() {
+                    try {
+                        const res = await fetch('/feedbacks');
+                        if (!res.ok) return;
+                        const arr = await res.json();
+                        // show newest first
+                        arr.slice().reverse().forEach(e => { try { addReply(e.message, e.email); } catch (er) { } });
+                    } catch (e) { /* ignore server load errors */ }
+                }
+
+                function loadLocalFeedbacks() {
+                    try {
+                        const raw = localStorage.getItem('localFeedbacks');
+                        if (!raw) return;
+                        const arr = JSON.parse(raw);
+                        // local entries were stored newest-first
+                        arr.forEach(e => { try { addReply(e.message, e.email); } catch (er) { } });
+                    } catch (e) { /* ignore local errors */ }
+                }
+
+                function saveLocalFeedback(item) {
+                    try {
+                        const raw = localStorage.getItem('localFeedbacks');
+                        const arr = raw ? JSON.parse(raw) : [];
+                        arr.unshift(item);
+                        // keep a reasonable limit
+                        if (arr.length > 200) arr.length = 200;
+                        localStorage.setItem('localFeedbacks', JSON.stringify(arr));
+                    } catch (e) { }
+                }
+
+                // initialise replies view
+                loadServerFeedbacks().then(() => loadLocalFeedbacks());
+
+                // Feedback form handling
+                (function () {
+                    // If you deploy to static hosting (GitHub Pages), set FEEDBACK_ENDPOINT
+                    // to a third-party form endpoint (Formspree, Netlify forms, etc.).
+                    // Example: const FEEDBACK_ENDPOINT = 'https://formspree.io/f/xyz';
+                    const FEEDBACK_ENDPOINT = '';
+                    const form = document.getElementById('feedbackForm');
+                    const txt = document.getElementById('feedbackText');
+                    const emailEl = document.getElementById('feedbackEmail');
+                    const btn = document.getElementById('feedbackSubmit');
+                    const msg = document.getElementById('feedbackMessage');
+                    if (!form || !txt || !btn || !msg) return;
+                    btn.addEventListener('click', async () => {
+                        const v = txt.value.trim();
+                        if (!v) { txt.focus(); return; }
+                        const email = emailEl ? (emailEl.value || '').trim() : '';
+
+                        // If a static FEEDBACK_ENDPOINT is set, use it (Formspree or similar)
+                        if (FEEDBACK_ENDPOINT) {
+                            try {
+                                // some services expect form-encoded data; send JSON string for custom endpoints
+                                const r = await fetch(FEEDBACK_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
+                                // many services return 200/201 even without JSON
+                                if (r.ok) {
+                                    try { addReply(v, email); } catch (e) { }
+                                    form.style.display = 'none'; msg.style.display = 'block'; txt.value = '';
+                                    return;
+                                }
+                            } catch (e) { /* continue to try local endpoints */ }
+                        }
+
+                        // send to local backend first (relative), then fallback to localhost:3000
+                        try {
+                            const res = await fetch('/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
+                            const j = await res.json();
+                            if (j && j.ok) { try { addReply(v, email); } catch (e) { } form.style.display = 'none'; msg.style.display = 'block'; txt.value = ''; return; }
+                        } catch (e) {
+                            try {
+                                const res2 = await fetch('http://localhost:3000/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: v, email }) });
+                                const j2 = await res2.json();
+                                if (j2 && j2.ok) { try { addReply(v, email); } catch (e) { } form.style.display = 'none'; msg.style.display = 'block'; txt.value = ''; return; }
+                            } catch (e2) { /* fall through to final error */ }
+                        }
+                        // save locally so message stays visible even without server
+                        try {
+                            const localEntry = { message: v, email: email, ts: Date.now() };
+                            saveLocalFeedback(localEntry);
+                            try { addReply(v, email); } catch (e) { }
+                            form.style.display = 'none'; msg.style.display = 'block'; txt.value = '';
+                            alert('تعذر الوصول للخادم. تم حفظ الرسالة محليًا وستظهر في قسم الردود.');
+                        } catch (e) {
+                            alert('لم نستطع إرسال الرسالة أو حفظها محليًا. حاول مجددًا.');
+                        }
+                    });
+                })();
+
+                let DPR = Math.max(window.devicePixelRatio || 1, 1);
+                let w = innerWidth, h = innerHeight, hw = w / 2, hh = h / 2;
+                let calc = { totalWidth: 0 };
+                const Tau = Math.PI * 2;
+                const letters = [];
+
+                function setSize() {
+                    DPR = Math.max(window.devicePixelRatio || 1, 1);
+                    const cssW = Math.max(1, innerWidth);
+                    const cssH = Math.max(1, innerHeight);
+                    canvas.style.width = cssW + 'px';
+                    canvas.style.height = cssH + 'px';
+                    canvas.width = Math.round(cssW * DPR);
+                    canvas.height = Math.round(cssH * DPR);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.scale(DPR, DPR);
+                    w = cssW; h = cssH; hw = w / 2; hh = h / 2;
+                    ctx.font = `${opts.charSize}px Verdana`;
+                    // compute total width: for Arabic lines use measured text width, else use charSpacing * length
+                    calc.totalWidth = Math.max(...opts.strings.map(s => isArabic(s) ? ctx.measureText(s).width : opts.charSpacing * s.length));
+                    // re-init snow for the new size
+                    initSnow();
+                }
+
+                function hueForX(x) {
+                    if (calc.totalWidth <= 0) return 40;
+                    const t = (x + calc.totalWidth / 2) / calc.totalWidth;
+                    return 30 + 25 * Math.min(Math.max(t, 0), 1);
+                }
+
+                function Letter(char, x, y, scale) {
+                    this.char = char;
+                    this.x = x;
+                    this.y = y;
+                    this.scale = scale || 1;
+                    this.fontSize = Math.round(opts.charSize * this.scale);
+                    // measure text with the correct font size
+                    const prevFont = ctx.font;
+                    ctx.font = `${this.fontSize}px Verdana`;
+                    this.dx = -ctx.measureText(char).width / 2;
+                    ctx.font = prevFont;
+                    this.dy = this.fontSize / 2;
+                    this.fireworkDy = this.y - hh;
+                    const hue = hueForX(x);
+                    this.hue = hue;
+                    this.color = `hsl(${hue},90%,50%)`;
+                    this.lightColor = (light) => `hsl(${hue},90%,${light}%)`;
+                    this.alphaColor = (alp) => `hsla(${hue},90%,52%,${alp})`;
+                    this.lightAlpha = (light, alp) => `hsla(${hue},90%,${light}%,${alp})`;
+                    this.reset();
+                }
+
+                Letter.prototype.reset = function () {
+                    this.phase = 'firework';
+                    this.tick = 0;
+                    this.spawned = false;
+                    this.spawningTime = Math.floor(opts.fireworkSpawnTime * Math.random());
+                    this.reachTime = Math.floor(opts.fireworkBaseReachTime + opts.fireworkAddedReachTime * Math.random());
+                    this.lineWidth = opts.fireworkBaseLineWidth + opts.fireworkAddedLineWidth * Math.random();
+                    this.prevPoints = [[0, hh, 0]];
+                };
+
+                Letter.prototype.step = function () {
+                    if (this.phase === 'firework') {
+                        if (!this.spawned) {
+                            ++this.tick;
+                            if (this.tick >= this.spawningTime) { this.tick = 0; this.spawned = true; }
+                        } else {
+                            ++this.tick;
+                            const lp = this.tick / Math.max(1, this.reachTime);
+                            const ap = Math.sin(lp * (Tau / 4));
+                            const x = lp * this.x;
+                            const y = hh + ap * this.fireworkDy;
+                            if (this.prevPoints.length > opts.fireworkPrevPoints) this.prevPoints.shift();
+                            this.prevPoints.push([x, y, lp * this.lineWidth]);
+                            const lwp = 1 / Math.max(1, this.prevPoints.length - 1);
+                            for (let i = 1; i < this.prevPoints.length; ++i) {
+                                const p = this.prevPoints[i], p2 = this.prevPoints[i - 1];
+                                ctx.strokeStyle = this.alphaColor((i / this.prevPoints.length) * 0.9);
+                                ctx.lineWidth = p[2] * lwp * i;
+                                ctx.beginPath();
+                                ctx.moveTo(p[0], p[1]);
+                                ctx.lineTo(p2[0], p2[1]);
+                                ctx.stroke();
+                            }
+                            if (this.tick >= this.reachTime) {
+                                this.phase = 'contemplate';
+                                this.circleFinalSize = opts.fireworkCircleBaseSize + opts.fireworkCircleAddedSize * Math.random();
+                                this.circleCompleteTime = Math.floor(opts.fireworkCircleBaseTime + opts.fireworkCircleAddedTime * Math.random());
+                                this.circleCreating = true; this.circleFading = false;
+                                this.circleFadeTime = Math.floor(opts.fireworkCircleFadeBaseTime + opts.fireworkCircleFadeAddedTime * Math.random());
+                                this.tick = 0; this.tick2 = 0;
+                                this.shards = [];
+                                const shardCount = Math.max(5, Math.floor(opts.fireworkBaseShards + opts.fireworkAddedShards * Math.random()));
+                                const angle = (Tau / shardCount);
+                                let cos = Math.cos(angle), sin = Math.sin(angle);
+                                let vx = 1, vy = 0;
+                                for (let i = 0; i < shardCount; ++i) {
+                                    const vx1 = vx;
+                                    vx = vx * cos - vy * sin;
+                                    vy = vx1 * sin + vy * cos;
+                                    this.shards.push(new Shard(this.x, this.y, vx, vy, this.alphaColor(1)));
+                                }
+                            }
+                        }
+                    } else if (this.phase === 'contemplate') {
+                        ++this.tick;
+                        if (this.circleCreating) {
+                            ++this.tick2;
+                            const proportion = this.tick2 / Math.max(1, this.circleCompleteTime);
+                            const armonic = -Math.cos(proportion * Math.PI) / 2 + 0.5;
+                            ctx.beginPath();
+                            ctx.fillStyle = this.lightAlpha(40 + 60 * proportion, proportion);
+                            ctx.arc(this.x, this.y, armonic * this.circleFinalSize, 0, Tau);
+                            ctx.fill();
+                            if (this.tick2 > this.circleCompleteTime) {
+                                this.tick2 = 0; this.circleCreating = false; this.circleFading = true;
+                            }
+                        } else if (this.circleFading) {
+                            ctx.save();
+                            ctx.shadowBlur = 18;
+                            ctx.shadowColor = 'rgba(255,200,110,0.9)';
+                            ctx.fillStyle = this.lightColor(76);
+                            // use the letter's font size when drawing text
+                            const prevFont2 = ctx.font;
+                            ctx.font = `${this.fontSize}px Verdana`;
+                            ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
+                            ctx.font = prevFont2;
+                            ctx.restore();
+                            ++this.tick2;
+                            const proportion = this.tick2 / Math.max(1, this.circleFadeTime);
+                            const armonic = -Math.cos(proportion * Math.PI) / 2 + 0.5;
+                            ctx.beginPath();
+                            ctx.fillStyle = this.lightAlpha(100, 1 - armonic);
+                            ctx.arc(this.x, this.y, this.circleFinalSize, 0, Tau);
+                            ctx.fill();
+                            if (this.tick2 >= this.circleFadeTime) this.circleFading = false;
+                        } else {
+                            ctx.save();
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = 'rgba(255,190,80,0.85)';
+                            ctx.fillStyle = this.lightColor(72);
+                            const prevFont3 = ctx.font;
+                            ctx.font = `${this.fontSize}px Verdana`;
+                            ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
+                            ctx.font = prevFont3;
+                            ctx.restore();
+                        }
+                        for (let i = 0; i < this.shards.length; ++i) {
+                            this.shards[i].step();
+                            if (!this.shards[i].alive) { this.shards.splice(i, 1); --i; }
+                        }
+                        if (this.tick > opts.letterContemplatingWaitTime) {
+                            this.phase = 'balloon';
+                            this.tick = 0; this.spawning = true;
+                            this.spawnTime = Math.floor(opts.balloonSpawnTime * Math.random());
+                            this.inflating = false;
+                            this.inflateTime = Math.floor(opts.balloonBaseInflateTime + opts.balloonAddedInflateTime * Math.random());
+                            this.size = Math.floor(opts.balloonBaseSize + opts.balloonAddedSize * Math.random());
+                            const rad = opts.balloonBaseRadian + opts.balloonAddedRadian * Math.random();
+                            const vel = opts.balloonBaseVel + opts.balloonAddedVel * Math.random();
+                            this.vx = Math.cos(rad) * vel;
+                            this.vy = Math.sin(rad) * vel;
+                            this.cx = this.x; this.cy = this.y;
+                        }
+                    } else if (this.phase === 'balloon') {
+                        ctx.strokeStyle = this.lightColor(82);
+                        ctx.lineWidth = 1.2;
+                        if (this.spawning) {
+                            ++this.tick;
+                            ctx.fillStyle = this.lightColor(72);
+                            ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
+                            if (this.tick >= this.spawnTime) { this.tick = 0; this.spawning = false; this.inflating = true; }
+                        } else if (this.inflating) {
+                            ++this.tick;
+                            const proportion = this.tick / Math.max(1, this.inflateTime);
+                            const x = (this.cx = this.x);
+                            const y = (this.cy = this.y - this.size * proportion);
+                            ctx.fillStyle = this.alphaColor(proportion * 0.9);
+                            ctx.beginPath();
+                            generateBalloonPath(ctx, x, y, this.size * proportion);
+                            ctx.fill();
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(x, this.y);
+                            ctx.stroke();
+                            ctx.fillStyle = this.lightColor(70);
+                            const prevFont4 = ctx.font;
+                            ctx.font = `${this.fontSize}px Verdana`;
+                            ctx.fillText(this.char, this.x + this.dx, this.y + this.dy);
+                            ctx.font = prevFont4;
+                            if (this.tick >= this.inflateTime) { this.tick = 0; this.inflating = false; }
+                        } else {
+                            this.cx += this.vx;
+                            this.cy += (this.vy += opts.upFlow);
+                            ctx.fillStyle = this.color;
+                            ctx.beginPath();
+                            generateBalloonPath(ctx, this.cx, this.cy, this.size);
+                            ctx.fill();
+                            ctx.beginPath();
+                            ctx.moveTo(this.cx, this.cy);
+                            ctx.lineTo(this.cx, this.cy + this.size);
+                            ctx.stroke();
+                            ctx.fillStyle = this.lightColor(76);
+                            const prevFont5 = ctx.font;
+                            ctx.font = `${this.fontSize}px Verdana`;
+                            ctx.fillText(this.char, this.cx + this.dx, this.cy + this.dy + this.size);
+                            ctx.font = prevFont5;
+                            if (this.cy + this.size < -hh - 120 || this.cx < -hw - 120 || this.cx > hw + 120) this.phase = 'done';
+                        }
+                    }
+                };
+
+                function Shard(x, y, vx, vy, color) {
+                    const vel = opts.fireworkShardBaseVel + opts.fireworkShardAddedVel * Math.random();
+                    this.vx = vx * vel; this.vy = vy * vel;
+                    this.x = x; this.y = y;
+                    this.prevPoints = [[x, y]];
+                    this.color = color;
+                    this.alive = true;
+                    this.size = opts.fireworkShardBaseSize + opts.fireworkShardAddedSize * Math.random();
+                }
+                Shard.prototype.step = function () {
+                    this.x += this.vx; this.y += this.vy += opts.gravity;
+                    if (this.prevPoints.length > opts.fireworkShardPrevPoints) this.prevPoints.shift();
+                    this.prevPoints.push([this.x, this.y]);
+                    const lwp = this.size / Math.max(1, this.prevPoints.length);
+                    for (let k = 0; k < this.prevPoints.length - 1; ++k) {
+                        const p = this.prevPoints[k], p2 = this.prevPoints[k + 1];
+                        ctx.strokeStyle = this.color;
+                        ctx.lineWidth = (k + 1) * lwp * 0.6;
+                        ctx.beginPath();
+                        ctx.moveTo(p[0], p[1]);
+                        ctx.lineTo(p2[0], p2[1]);
+                        ctx.stroke();
+                    }
+                    if (this.prevPoints[0][1] > hh + 60) this.alive = false;
+                };
+
+                function generateBalloonPath(ctx, x, y, size) {
+                    ctx.moveTo(x, y);
+                    ctx.bezierCurveTo(x - size / 2, y - size / 2, x - size / 4, y - size, x, y - size);
+                    ctx.bezierCurveTo(x + size / 4, y - size, x + size / 2, y - size / 2, x, y);
+                }
+
+                // --- Snowfall implementation (sprite-backed) ---
+                let snow = [];
+
+                function createSnowflake() {
+                    const r = 0.8 + Math.random() * 3.0;
+                    const size = 6 + Math.random() * 22; // sprite/pixel size
+                    return {
+                        x: Math.random() * w,
+                        y: Math.random() * (-h),
+                        r: r,
+                        size: size,
+                        vy: 0.6 + Math.random() * 1.8,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        drift: Math.random() * Math.PI * 2,
+                        rot: Math.random() * Math.PI * 2,
+                        rotSpeed: (Math.random() - 0.5) * 0.02,
+                        alpha: 0.35 + Math.random() * 0.65
+                    };
+                }
+
+                function initSnow() {
+                    snow.length = 0;
+                    if (!opts.snowEnabled) return;
+                    // scale count by viewport area to avoid too many on very large screens
+                    const areaFactor = Math.min(2, (w * h) / (1280 * 720));
+                    const count = Math.max(8, Math.round(opts.snowCount * areaFactor));
+                    for (let i = 0; i < count; ++i) snow.push(createSnowflake());
+                }
+
+                function updateAndDrawSnow() {
+                    if (!opts.snowEnabled || snow.length === 0) return;
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'lighter';
+                    for (let i = 0; i < snow.length; ++i) {
+                        const s = snow[i];
+                        s.drift += 0.001 + (Math.random() * 0.002);
+                        s.x += s.vx + Math.sin(s.drift) * 0.4 * (opts.snowWind || 0.6);
+                        s.y += s.vy;
+                        s.rot += s.rotSpeed;
+                        if (s.y > h + 80) {
+                            // respawn at top
+                            snow[i] = createSnowflake();
+                            snow[i].y = -10 - Math.random() * 120;
+                        }
+
+                        if (snowImgReady) {
+                            ctx.save();
+                            ctx.globalAlpha = s.alpha;
+                            ctx.translate(s.x, s.y);
+                            ctx.rotate(s.rot);
+                            const drawSize = s.size;
+                            ctx.drawImage(snowImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+                            ctx.restore();
+                        } else {
+                            // fallback: simple white circle
+                            ctx.beginPath();
+                            ctx.fillStyle = `rgba(255,255,255,${s.alpha})`;
+                            ctx.moveTo(s.x, s.y);
+                            ctx.arc(s.x, s.y, s.r, 0, Tau);
+                            ctx.fill();
+                        }
+                    }
+                    ctx.restore();
+                }
+
+                function createLetters() {
+                    letters.length = 0;
+                    const rows = opts.strings.length;
+                    const blockHeight = opts.lineHeight * rows;
+                    for (let i = 0; i < rows; ++i) {
+                        const str = opts.strings[i];
+                        const y = i * opts.lineHeight + opts.lineHeight / 2 - blockHeight / 2;
+                        if (isArabic(str)) {
+                            // treat whole Arabic line as a single unit to preserve joining
+                            letters.push(new Letter(str, 0, y, opts.arabicScale));
+                        } else {
+                            const rowWidth = opts.charSpacing * str.length;
+                            const xOffset = -rowWidth / 2 + opts.charSpacing / 2;
+                            for (let j = 0; j < str.length; ++j) {
+                                letters.push(new Letter(str[j], xOffset + j * opts.charSpacing, y));
+                            }
+                        }
+                    }
+                }
+
+                function animate() {
+                    window.requestAnimationFrame(animate);
+                    ctx.save();
+                    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
+
+                    const g = ctx.createRadialGradient(hw, hh, 0, hw, hh, Math.max(w, h) * 0.9);
+                    g.addColorStop(0, 'rgba(255,190,80,0.06)');
+                    g.addColorStop(0.25, 'rgba(255,160,60,0.03)');
+                    g.addColorStop(1, 'rgba(0,0,0,0.6)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
+                    // draw background image under everything with low opacity
+                    if (bgReady) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.14; // adjust transparency here (0 = invisible, 1 = opaque)
+                        ctx.drawImage(bgImg, 0, 0, canvas.width / DPR, canvas.height / DPR);
+                        ctx.restore();
+                    }
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.translate(hw, hh);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.font = `${opts.charSize}px Verdana`;
+
+                    let allDone = true;
+                    for (let i = 0; i < letters.length; ++i) {
+                        letters[i].step();
+                        if (letters[i].phase !== 'done') allDone = false;
+                    }
+
+                    ctx.restore();
+
+                    // draw snowfall on top of everything so snowflake images fall in front
+                    updateAndDrawSnow();
+
+                    if (allDone) {
+                        setTimeout(() => { for (let L of letters) L.reset(); }, 400);
+                    }
+                }
+
+                setSize();
+                window.addEventListener('resize', () => {
+                    window.requestAnimationFrame(() => { setSize(); createLetters(); });
+                }, { passive: true });
+
+                createLetters();
+                initSnow();
+                animate();
+            })();
+        </script>
+    </body>
+
+    </html>
+
+</body>
+
+</html>
