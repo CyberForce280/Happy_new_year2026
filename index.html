@@ -515,6 +515,7 @@
                     this.reachTime = Math.floor(opts.fireworkBaseReachTime + opts.fireworkAddedReachTime * Math.random());
                     this.lineWidth = opts.fireworkBaseLineWidth + opts.fireworkAddedLineWidth * Math.random();
                     this.prevPoints = [[0, hh, 0]];
+                    this.keepAliveUntil = 0; // timestamp to keep letter visible (ms)
                 };
 
                 Letter.prototype.step = function () {
@@ -619,6 +620,8 @@
                             this.vx = Math.cos(rad) * vel;
                             this.vy = Math.sin(rad) * vel;
                             this.cx = this.x; this.cy = this.y;
+                            // keep letter visible for at least 10 seconds after balloon phase begins
+                            this.keepAliveUntil = Date.now() + 10000;
                         }
                     } else if (this.phase === 'balloon') {
                         ctx.strokeStyle = this.lightColor(82);
@@ -663,7 +666,7 @@
                             ctx.font = `${this.fontSize}px Verdana`;
                             ctx.fillText(this.char, this.cx + this.dx, this.cy + this.dy + this.size);
                             ctx.font = prevFont5;
-                            if (this.cy + this.size < -hh - 120 || this.cx < -hw - 120 || this.cx > hw + 120) this.phase = 'done';
+                            if ((this.cy + this.size < -hh - 120 || this.cx < -hw - 120 || this.cx > hw + 120) && Date.now() > (this.keepAliveUntil || 0)) this.phase = 'done';
                         }
                     }
                 };
